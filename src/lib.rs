@@ -8,14 +8,14 @@ mod tests {
     }
 }
 
-pub struct Frequencies<C: std::hash::Hash + std::cmp::Eq> {
+pub struct Frequencies {
     /// map of frequencies
-    map: HashMap<C, u128>,
+    map: HashMap<char, u128>,
 }
 
-impl<C: std::hash::Hash + std::cmp::Eq> Frequencies<C> {
-    /// record an appearance of C
-    pub fn record(&mut self, c: C) {
+impl Frequencies {
+    /// record an appearance of char
+    pub fn record(&mut self, c: char) {
         if let Some(record) = self.map.get_mut(&c) {
             *record += 1;
         } else {
@@ -24,18 +24,18 @@ impl<C: std::hash::Hash + std::cmp::Eq> Frequencies<C> {
     }
 }
 
-pub struct Distribution<'a, C: std::hash::Hash + std::cmp::Eq> {
+pub struct Distribution {
     /// map of distribution
-    map: HashMap<&'a C, f64>,
+    map: HashMap<char, f64>,
 }
 
-impl<'a, C: std::hash::Hash + std::cmp::Eq> Distribution<'a, C> {
-    pub fn new(frequencies: &'a Frequencies<C>) -> Self {
+impl Distribution {
+    pub fn new(frequencies: Frequencies) -> Self {
         let n = frequencies.map.values()
             .sum::<u128>() as f64;
 
         let map = frequencies.map.iter()
-            .map(|(k,&v)| {
+            .map(|(&k,&v)| {
                 (k, v as f64 / n)
             })
             .collect();
