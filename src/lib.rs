@@ -197,6 +197,71 @@ mod optimal_alignments {
 
             return;
         }
+
+        /// N(presented -> entry)
+        fn n<F: Fn(&Element, &Element) -> bool>(&self, f: F) -> usize {
+            let mut counter = 0usize;
+
+            self.presented.iter()
+                .zip(
+                    self.transcribed.iter()
+                )
+                .for_each(|(p, t)| if f(p, t) {
+                    counter += 1;
+                });
+
+            counter
+        }
+
+        /// \sum_{i,j} N(i -> j)
+        fn len(&self) -> usize {
+            self.len
+        }
+    }
+
+    impl OptimalAlignments {
+        /// p(I)
+        pub fn insertion_probability(&self) -> f64 {
+            let closure = |p: &Element, e: &Element| -> bool {
+                p.is_null() && !e.is_null()
+            };
+
+            self.n(closure) as f64
+                / self.len as f64
+        }
+
+        /// p(M)
+        pub fn omission_probability(&self) -> f64 {
+            let closure = |p: &Element, e: &Element| -> bool {
+                !p.is_null() && e.is_null()
+            };
+
+            self.n(closure) as f64
+                / self.n(|p, _| !p.is_null()) as f64
+                * (1f64 - self.insertion_probability())
+        }
+
+        /// p(S)
+        pub fn substitution_probability(&self) -> f64 {
+            let closure = |p: &Element, e: &Element| -> bool {
+                !p.is_null() && !e.is_null() && p != e
+            };
+
+            self.n(closure) as f64
+                / self.n(|p, _| !p.is_null()) as f64
+                * (1f64 - self.insertion_probability())
+        }
+
+        /// p(C)
+        pub fn probability_of_correct_entries(&self) -> f64 {
+            let closure = |p: &Element, e: &Element| -> bool {
+                !p.is_null() && !e.is_null() && p == e
+            };
+
+            self.n(closure) as f64
+                / self.n(|p, _| !p.is_null()) as f64
+                * (1f64 - self.insertion_probability())
+        }
     }
 
     #[cfg(test)]
@@ -253,6 +318,23 @@ mod optimal_alignments {
             };
 
             assert_eq!(optimal_alignment, answer);
+        }
+
+        fn sample_alignments() -> OptimalAlignments {
+            let presented = "my watch fell in the waterprevailing wind from the east";
+            let transcribed = "my wacch fell in waterpreviling wind on the east";
+
+            OptimalAlignments::new(presented, transcribed)
+        }
+
+        #[test]
+        fn probabilities_test() {
+            let alignments = sample_alignments();
+
+            assert_eq!(alignments.insertion_probability(), 0.0);
+            assert_eq!(alignments.omission_probability(), 0.12727272727272726);
+            assert_eq!(alignments.substitution_probability(), 0.03636363636363636);
+            assert_eq!(alignments.probability_of_correct_entries(), 0.8363636363636363);
         }
     }
 }
