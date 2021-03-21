@@ -42,6 +42,19 @@ impl Distribution {
 
         Self { map }
     }
+
+    pub fn p(&self, c: &char) -> Option<&f64> {
+        self.map.get(c)
+    }
+
+    /// H(X): entropy
+    pub fn hx(&self) -> f64 {
+        - self.map.iter()
+            .map(|(_,pi)| {
+                pi * pi.log2()
+            })
+            .sum()
+    }
 }
 
 mod optimal_alignments {
