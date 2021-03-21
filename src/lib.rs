@@ -70,10 +70,11 @@ mod optimal_alignments {
         }
     }
 
-    #[derive(Debug, Default, Eq, PartialEq)]
+    #[derive(Debug, Default, PartialEq)]
     pub struct OptimalAlignments {
         presented: Vec<Element>,
         transcribed: Vec<Element>,
+        p_null: f64,
         len: usize,
     }
 
@@ -107,6 +108,8 @@ mod optimal_alignments {
             } else {
                 slf.len = slf.presented.len();
             }
+
+            slf.p_null = slf.p_null();
 
             slf
         }
@@ -226,6 +229,11 @@ mod optimal_alignments {
             counter
         }
 
+        /// p(NULL) = p'(NULL)
+        fn p_null(&self) -> f64 {
+            self.n(|p, _| p == &Element::Null) as f64
+                / self.len() as f64
+        }
         /// \sum_{i,j} N(i -> j)
         fn len(&self) -> usize {
             self.len
@@ -327,6 +335,7 @@ mod optimal_alignments {
                     Element::Character('l'),
                     Element::Character('y'),
                 ],
+                p_null: 0.0,
                 len: 9,
             };
 
