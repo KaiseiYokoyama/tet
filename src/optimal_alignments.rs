@@ -1,4 +1,4 @@
-use crate::Distribution;
+use crate::distribution::Distribution;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 enum Element {
@@ -288,8 +288,8 @@ impl<'a> OptimalAlignments<'a> {
         Some(-acc)
     }
 
-    /// I(X,Y)
-    fn ixy(&self, distribution: &Distribution) -> Option<f64> {
+    /// I(X,Y): bits/character
+    pub fn ixy(&self, distribution: &Distribution) -> Option<f64> {
         self.hyx(distribution)
             .map(|hyx| distribution.hx() - hyx)
     }
@@ -372,10 +372,10 @@ mod test {
         let presented = "quickly";
         let transcribed = "qucehkly";
 
-        let distributions = alphabet_distributions();
-        let optimal_alignment = OptimalAlignments::new(presented, transcribed, &distributions);
+        let distribution = alphabet_distribution();
+        let optimal_alignment = OptimalAlignments::new(presented, transcribed, &distribution);
         let answer = OptimalAlignments {
-            distribution: &distributions,
+            distribution: &distribution,
             presented: vec![
                 Element::Character('q'),
                 Element::Character('u'),
@@ -414,7 +414,7 @@ mod test {
 
     #[test]
     fn probabilities_test() {
-        let distribution = alphabet_distributions();
+        let distribution = alphabet_distribution();
         let alignments = sample_alignments(&distribution);
 
         assert_eq!(alignments.insertion_probability(), 0.0);
@@ -423,7 +423,7 @@ mod test {
         assert_eq!(alignments.probability_of_correct_entries(), 0.8363636363636363);
     }
 
-    fn alphabet_distributions() -> Distribution {
+    fn alphabet_distribution() -> Distribution {
         let alphabets = [
             'a', 'b', 'c', 'd', 'e',
             'f', 'g', 'h', 'i', 'j',
@@ -433,7 +433,7 @@ mod test {
             'z', ' '
         ];
 
-        let distributions = [
+        let distribution = [
             0.06545420428810268, 0.012614349400134882, 0.022382079660795914, 0.032895839710101495, 0.10287480840814522,
             0.019870906945619955, 0.01628201251975626, 0.0498866519336527, 0.05679944220647908, 0.0009771967640664421,
             0.005621008826086285, 0.03324279082953061, 0.020306796250368523, 0.057236004874678816, 0.061720746945911634,
@@ -442,7 +442,7 @@ mod test {
             0.0005138874382474097, 0.18325568938199557];
 
         let map = alphabets.iter().cloned()
-            .zip(distributions.iter().cloned())
+            .zip(distribution.iter().cloned())
             .collect::<HashMap<_, _>>();
 
         Distribution { map }
@@ -450,9 +450,9 @@ mod test {
 
     #[test]
     fn ixy_test() {
-        let distributions = alphabet_distributions();
+        let distribution = alphabet_distribution();
 
-        let alignments = sample_alignments(&distributions);
+        let alignments = sample_alignments(&distribution);
 
         // insertion probability
         assert_eq!(alignments.insertion_probability(), 0.0);
@@ -464,12 +464,12 @@ mod test {
         assert_eq!(alignments.probability_of_correct_entries(), 0.8363636363636363);
 
         // H(X)
-        assert!((distributions.hx() - 4.090309047790043).abs() < 0.00000000001);
+        assert!((distribution.hx() - 4.090309047790043).abs() < 0.00000000001);
 
         // H_Y(X)
-        assert!(alignments.hyx(&distributions).unwrap() - 0.8515677144377292 < 0.00000000001);
+        assert!(alignments.hyx(&distribution).unwrap() - 0.8515677144377292 < 0.00000000001);
 
         // I(X,Y): bits/character
-        assert!(alignments.ixy(&distributions).unwrap() - 3.238741333352314 < 0.00000000001);
+        assert!(alignments.ixy(&distribution).unwrap() - 3.238741333352314 < 0.00000000001);
     }
 }
