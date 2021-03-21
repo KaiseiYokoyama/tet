@@ -261,8 +261,8 @@ impl<'a> OptimalAlignments<'a> {
     }
 
     /// H_Y(X)
-    fn hyx(&self, distribution: &Distribution) -> Option<f64> {
-        let elements = distribution.map.keys()
+    fn hyx(&self) -> Option<f64> {
+        let elements = self.distribution.map.keys()
             .cloned()
             .map(Element::Character);
 
@@ -289,9 +289,9 @@ impl<'a> OptimalAlignments<'a> {
     }
 
     /// I(X,Y): bits/character
-    pub fn ixy(&self, distribution: &Distribution) -> Option<f64> {
-        self.hyx(distribution)
-            .map(|hyx| distribution.hx() - hyx)
+    pub fn ixy(&self) -> Option<f64> {
+        self.hyx()
+            .map(|hyx| self.distribution.hx() - hyx)
     }
 
     /// \sum_{i,j} N(i -> j)
@@ -398,7 +398,7 @@ mod test {
                 Element::Character('l'),
                 Element::Character('y'),
             ],
-            p_null: 0.0,
+            p_null: 0.2222222222222222,
             len: 9,
         };
 
@@ -467,9 +467,9 @@ mod test {
         assert!((distribution.hx() - 4.090309047790043).abs() < 0.00000000001);
 
         // H_Y(X)
-        assert!(alignments.hyx(&distribution).unwrap() - 0.8515677144377292 < 0.00000000001);
+        assert!(alignments.hyx().unwrap() - 0.8515677144377292 < 0.00000000001);
 
         // I(X,Y): bits/character
-        assert!(alignments.ixy(&distribution).unwrap() - 3.238741333352314 < 0.00000000001);
+        assert!(alignments.ixy().unwrap() - 3.238741333352314 < 0.00000000001);
     }
 }

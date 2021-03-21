@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 /// frequency of characters
+#[derive(Debug, PartialEq, Clone)]
 pub struct Frequencies {
     /// map of frequencies
     map: HashMap<char, u128>,
@@ -21,7 +22,7 @@ impl Frequencies {
 #[derive(Debug, PartialEq)]
 pub struct Distribution {
     /// map of distribution
-    map: HashMap<char, f64>,
+    pub(crate) map: HashMap<char, f64>,
 }
 
 impl Distribution {
@@ -38,7 +39,7 @@ impl Distribution {
         Self { map }
     }
 
-    fn p(&self, c: &char) -> Option<&f64> {
+    pub(crate) fn p(&self, c: &char) -> Option<&f64> {
         self.map.get(c)
     }
 
