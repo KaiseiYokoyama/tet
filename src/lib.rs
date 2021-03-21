@@ -58,6 +58,8 @@ impl Distribution {
 }
 
 mod optimal_alignments {
+    use crate::Distribution;
+
     #[derive(Debug, Clone, Eq, PartialEq)]
     enum Element {
         Character(char),
@@ -234,6 +236,73 @@ mod optimal_alignments {
             self.n(|p, _| p == &Element::Null) as f64
                 / self.len() as f64
         }
+
+        /// p'(c)
+        fn p_dash(&self, distribution: &Distribution, c: &Element) -> Option<f64> {
+            match c {
+                Element::Null => Some(self.p_null),
+                Element::Character(c) => {
+                    distribution.p(c)
+                        .map(|p_c| {
+                            p_c * (1f64 - self.p_null)
+                        })
+                }
+            }
+        }
+
+        /// p_i(j)
+        fn p_i_j(&self, distribution: &Distribution, i: &Element, j: &Element) -> f64 {
+            // insertion error
+            match (i, j) {
+                (Element::Null, Element::Character(_)) => {
+                    self.insertion_probability()
+                        / distribution.map.keys().count() as f64
+                }
+                (Element::Character(_), Element::Null) => {
+                    self.omission_probability()
+                }
+                (Element::Character(p), Element::Character(e)) => {
+                    if p != e {
+                        self.substitution_probability()
+                            / (distribution.map.keys().count() - 1) as f64
+                    } else {
+                        self.probability_of_correct_entries()
+                    }
+                }
+                _ => {
+                    unreachable!()
+                }
+            }
+        }
+
+        /// p(i,j)
+        fn pij(&self, distribution: &Distribution, i: &Element, j: &Element) -> Option<f64> {
+            self.p_dash(distribution, i)
+                .map(|p_dash_i| {
+                    p_dash_i * self.p_i_j(distribution, i, j)
+                })
+        }
+
+        /// p_j(i)
+        fn p_j_i(&self, distribution: &Distribution, i: &Element, j: &Element) -> Option<f64> {
+            let extend = vec![Element::Null];
+            Some(
+                self.pij(distribution, i, j)?
+                    / distribution.map.keys()
+                    .cloned()
+                    .map(Element::Character)
+                    .chain(extend)
+                    .map(|i| self.pij(distribution, &i, j))
+                    .fold(Some(0.0), |acc, p| {
+                        if acc.is_none() || p.is_none() {
+                            None
+                        } else {
+                            Some(acc.unwrap() + p.unwrap())
+                        }
+                    })?
+            )
+        }
+
         /// \sum_{i,j} N(i -> j)
         fn len(&self) -> usize {
             self.len
