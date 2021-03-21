@@ -1,13 +1,5 @@
 use std::collections::HashMap;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
-
 pub struct Frequencies {
     /// map of frequencies
     map: HashMap<char, u128>,
@@ -24,6 +16,7 @@ impl Frequencies {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Distribution {
     /// map of distribution
     map: HashMap<char, f64>,
@@ -49,11 +42,11 @@ impl Distribution {
 
     /// H(X): entropy
     pub fn hx(&self) -> f64 {
-        - self.map.iter()
-            .map(|(_,pi)| {
+        -self.map.iter()
+            .map(|(_, &pi)| {
                 pi * pi.log2()
             })
-            .sum()
+            .sum::<f64>()
     }
 }
 
@@ -72,21 +65,28 @@ mod optimal_alignments {
         }
     }
 
-    #[derive(Debug, Default, PartialEq)]
-    pub struct OptimalAlignments {
+    #[derive(Debug, PartialEq)]
+    pub struct OptimalAlignments<'a> {
+        distribution: &'a Distribution,
         presented: Vec<Element>,
         transcribed: Vec<Element>,
         p_null: f64,
         len: usize,
     }
 
-    impl OptimalAlignments {
-        pub fn new<P, T>(presented: P, transcribed: T) -> Self
+    impl<'a> OptimalAlignments<'a> {
+        pub fn new<P, T>(presented: P, transcribed: T, distribution: &'a Distribution) -> Self
             where P: Into<&'static str>, T: Into<&'static str>
         {
             let (presented, transcribed) = (presented.into(), transcribed.into());
 
-            let mut slf = Self::default();
+            let mut slf = Self {
+                distribution,
+                presented: Vec::new(),
+                transcribed: Vec::new(),
+                p_null: 0.0,
+                len: 0,
+            };
 
             let mut d = Self::msd(presented, transcribed);
 
@@ -231,6 +231,14 @@ mod optimal_alignments {
             counter
         }
 
+        /// p(i)
+        fn p(&self, c: &Element) -> Option<f64> {
+            match c {
+                Element::Null => Some(self.p_null),
+                Element::Character(c) => self.distribution.p(c).cloned()
+            }
+        }
+
         /// p(NULL) = p'(NULL)
         fn p_null(&self) -> f64 {
             self.n(|p, _| p == &Element::Null) as f64
@@ -238,11 +246,11 @@ mod optimal_alignments {
         }
 
         /// p'(c)
-        fn p_dash(&self, distribution: &Distribution, c: &Element) -> Option<f64> {
+        fn p_dash(&self, c: &Element) -> Option<f64> {
             match c {
                 Element::Null => Some(self.p_null),
-                Element::Character(c) => {
-                    distribution.p(c)
+                c => {
+                    self.p(c)
                         .map(|p_c| {
                             p_c * (1f64 - self.p_null)
                         })
@@ -251,12 +259,12 @@ mod optimal_alignments {
         }
 
         /// p_i(j)
-        fn p_i_j(&self, distribution: &Distribution, i: &Element, j: &Element) -> f64 {
+        fn p_i_j(&self, i: &Element, j: &Element) -> f64 {
             // insertion error
             match (i, j) {
                 (Element::Null, Element::Character(_)) => {
                     self.insertion_probability()
-                        / distribution.map.keys().count() as f64
+                        / self.distribution.map.keys().count() as f64
                 }
                 (Element::Character(_), Element::Null) => {
                     self.omission_probability()
@@ -264,35 +272,37 @@ mod optimal_alignments {
                 (Element::Character(p), Element::Character(e)) => {
                     if p != e {
                         self.substitution_probability()
-                            / (distribution.map.keys().count() - 1) as f64
+                            / (self.distribution.map.keys().count() - 1) as f64
                     } else {
                         self.probability_of_correct_entries()
                     }
                 }
                 _ => {
+                    dbg!(&(i, j));
                     unreachable!()
                 }
             }
         }
 
         /// p(i,j)
-        fn pij(&self, distribution: &Distribution, i: &Element, j: &Element) -> Option<f64> {
-            self.p_dash(distribution, i)
+        fn pij(&self, i: &Element, j: &Element) -> Option<f64> {
+            self.p_dash(i)
                 .map(|p_dash_i| {
-                    p_dash_i * self.p_i_j(distribution, i, j)
+                    p_dash_i * self.p_i_j(i, j)
                 })
         }
 
         /// p_j(i)
-        fn p_j_i(&self, distribution: &Distribution, i: &Element, j: &Element) -> Option<f64> {
-            let extend = vec![Element::Null];
+        fn p_j_i(&self, i: &Element, j: &Element) -> Option<f64> {
+            // let extend = vec![Element::Null];
             Some(
-                self.pij(distribution, i, j)?
-                    / distribution.map.keys()
+                self.pij(i, j)?
+                    / self.distribution.map.keys()
                     .cloned()
                     .map(Element::Character)
-                    .chain(extend)
-                    .map(|i| self.pij(distribution, &i, j))
+                    // .chain(extend)
+                    // .filter(|i| !i.is_null() || !j.is_null())
+                    .map(|i| self.pij(&i, j))
                     .fold(Some(0.0), |acc, p| {
                         if acc.is_none() || p.is_none() {
                             None
@@ -303,13 +313,47 @@ mod optimal_alignments {
             )
         }
 
+        /// H_Y(X)
+        fn hyx(&self, distribution: &Distribution) -> Option<f64> {
+            let elements = distribution.map.keys()
+                .cloned()
+                .map(Element::Character);
+
+            let is = elements.clone();
+
+            let mut acc = 0.0;
+
+            for i in is {
+                let extend = vec![Element::Null];
+                let js = elements.clone().chain(extend);
+
+                for j in js {
+                    if i.is_null() && j.is_null() {
+                        continue;
+                    }
+                    // dbg!((&i, &j));
+                    acc += self.pij(&i, &j)?
+                        * self.p_j_i(&i, &j)?.log2();
+                    // dbg!(&acc);
+                }
+            }
+
+            Some(-acc)
+        }
+
+        /// I(X,Y)
+        fn ixy(&self, distribution: &Distribution) -> Option<f64> {
+            self.hyx(distribution)
+                .map(|hyx| distribution.hx() - hyx)
+        }
+
         /// \sum_{i,j} N(i -> j)
         fn len(&self) -> usize {
             self.len
         }
     }
 
-    impl OptimalAlignments {
+    impl<'a> OptimalAlignments<'a> {
         /// p(I)
         pub fn insertion_probability(&self) -> f64 {
             let closure = |p: &Element, e: &Element| -> bool {
@@ -357,6 +401,7 @@ mod optimal_alignments {
     #[cfg(test)]
     mod test {
         use super::*;
+        use std::collections::HashMap;
 
         #[test]
         fn msd_test() {
@@ -380,8 +425,10 @@ mod optimal_alignments {
             let presented = "quickly";
             let transcribed = "qucehkly";
 
-            let optimal_alignment = OptimalAlignments::new(presented, transcribed);
+            let distributions = alphabet_distributions();
+            let optimal_alignment = OptimalAlignments::new(presented, transcribed, &distributions);
             let answer = OptimalAlignments {
+                distribution: &distributions,
                 presented: vec![
                     Element::Character('q'),
                     Element::Character('u'),
@@ -411,21 +458,72 @@ mod optimal_alignments {
             assert_eq!(optimal_alignment, answer);
         }
 
-        fn sample_alignments() -> OptimalAlignments {
+        fn sample_alignments<'a>(distribution: &'a Distribution) -> OptimalAlignments<'a> {
             let presented = "my watch fell in the waterprevailing wind from the east";
             let transcribed = "my wacch fell in waterpreviling wind on the east";
 
-            OptimalAlignments::new(presented, transcribed)
+            OptimalAlignments::new(presented, transcribed, distribution)
         }
 
         #[test]
         fn probabilities_test() {
-            let alignments = sample_alignments();
+            let distribution = alphabet_distributions();
+            let alignments = sample_alignments(&distribution);
 
             assert_eq!(alignments.insertion_probability(), 0.0);
             assert_eq!(alignments.omission_probability(), 0.12727272727272726);
             assert_eq!(alignments.substitution_probability(), 0.03636363636363636);
             assert_eq!(alignments.probability_of_correct_entries(), 0.8363636363636363);
+        }
+
+        fn alphabet_distributions() -> Distribution {
+            let alphabets = [
+                'a', 'b', 'c', 'd', 'e',
+                'f', 'g', 'h', 'i', 'j',
+                'k', 'l', 'm', 'n', 'o',
+                'p', 'q', 'r', 's', 't',
+                'u', 'v', 'w', 'x', 'y',
+                'z', ' '
+            ];
+
+            let distributions = [
+                0.06545420428810268, 0.012614349400134882, 0.022382079660795914, 0.032895839710101495, 0.10287480840814522,
+                0.019870906945619955, 0.01628201251975626, 0.0498866519336527, 0.05679944220647908, 0.0009771967640664421,
+                0.005621008826086285, 0.03324279082953061, 0.020306796250368523, 0.057236004874678816, 0.061720746945911634,
+                0.015073764715016882, 0.0008384527300266635, 0.049980287430261394, 0.05327793252372975, 0.07532249847431097,
+                0.022804128240333354, 0.007977317166161044, 0.017073508770571122, 0.0014120607927983009, 0.014305632773116854,
+                0.0005138874382474097, 0.18325568938199557];
+
+            let map = alphabets.iter().cloned()
+                .zip(distributions.iter().cloned())
+                .collect::<HashMap<_, _>>();
+
+            Distribution { map }
+        }
+
+        #[test]
+        fn ixy_test() {
+            let distributions = alphabet_distributions();
+
+            let alignments = sample_alignments(&distributions);
+
+            // insertion probability
+            assert_eq!(alignments.insertion_probability(), 0.0);
+            // omission probability
+            assert_eq!(alignments.omission_probability(), 0.12727272727272726);
+            // substitution probability
+            assert_eq!(alignments.substitution_probability(), 0.03636363636363636);
+            // correct probability
+            assert_eq!(alignments.probability_of_correct_entries(), 0.8363636363636363);
+
+            // H(X)
+            assert!((distributions.hx() - 4.090309047790043).abs() < 0.00000000001);
+
+            // H_Y(X)
+            assert!(alignments.hyx(&distributions).unwrap() - 0.8515677144377292 < 0.00000000001);
+
+            // I(X,Y): bits/character
+            assert!(alignments.ixy(&distributions).unwrap() - 3.238741333352314 < 0.00000000001);
         }
     }
 }
