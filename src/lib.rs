@@ -35,7 +35,7 @@ impl Distribution {
             .sum::<u128>() as f64;
 
         let map = frequencies.map.iter()
-            .map(|(&k,&v)| {
+            .map(|(&k, &v)| {
                 (k, v as f64 / n)
             })
             .collect();
@@ -48,13 +48,20 @@ mod optimal_alignments {
     #[derive(Debug, Clone, Eq, PartialEq)]
     enum Element {
         Character(char),
-        Padding,
+        Null,
+    }
+
+    impl Element {
+        pub fn is_null(&self) -> bool {
+            self == &Element::Null
+        }
     }
 
     #[derive(Debug, Default, Eq, PartialEq)]
     pub struct OptimalAlignments {
         presented: Vec<Element>,
         transcribed: Vec<Element>,
+        len: usize,
     }
 
     impl OptimalAlignments {
@@ -82,9 +89,16 @@ mod optimal_alignments {
                 Vec::new(),
             );
 
+            if slf.presented.len() != slf.transcribed.len() {
+                panic!("Something went wrong :sob:");
+            } else {
+                slf.len = slf.presented.len();
+            }
+
             slf
         }
 
+        /// ref. https://dl.acm.org/doi/10.1145/572020.572056
         fn msd(presented: &str, transcribed: &str) -> Vec<Vec<u128>> {
             fn r(x: char, y: char) -> u128 {
                 if x == y { 0 } else { 1 }
@@ -124,6 +138,7 @@ mod optimal_alignments {
             d
         }
 
+        /// ref. https://dl.acm.org/doi/fullHtml/10.1145/3290605.3300866
         fn alignments(
             &mut self,
             presented: &Vec<char>,
@@ -165,7 +180,7 @@ mod optimal_alignments {
             if x > 0 && d[x][y] == d[x - 1][y] + 1 {
                 let (mut p_aligned, mut t_aligned) = (p_aligned.clone(), t_aligned.clone());
                 p_aligned.insert(0, Element::Character(presented[x - 1]));
-                t_aligned.insert(0, Element::Padding);
+                t_aligned.insert(0, Element::Null);
 
                 // recursive call
                 self.alignments(presented, transcribed, d, x - 1, y, p_aligned, t_aligned);
@@ -173,7 +188,7 @@ mod optimal_alignments {
 
             if y > 0 && d[x][y] == d[x][y - 1] + 1 {
                 let (mut p_aligned, mut t_aligned) = (p_aligned.clone(), t_aligned.clone());
-                p_aligned.insert(0, Element::Padding);
+                p_aligned.insert(0, Element::Null);
                 t_aligned.insert(0, Element::Character(transcribed[y - 1]));
 
                 // recursive call
@@ -217,8 +232,8 @@ mod optimal_alignments {
                     Element::Character('u'),
                     Element::Character('i'),
                     Element::Character('c'),
-                    Element::Padding,
-                    Element::Padding,
+                    Element::Null,
+                    Element::Null,
                     Element::Character('k'),
                     Element::Character('l'),
                     Element::Character('y'),
@@ -226,7 +241,7 @@ mod optimal_alignments {
                 transcribed: vec![
                     Element::Character('q'),
                     Element::Character('u'),
-                    Element::Padding,
+                    Element::Null,
                     Element::Character('c'),
                     Element::Character('e'),
                     Element::Character('h'),
@@ -234,6 +249,7 @@ mod optimal_alignments {
                     Element::Character('l'),
                     Element::Character('y'),
                 ],
+                len: 9,
             };
 
             assert_eq!(optimal_alignment, answer);
