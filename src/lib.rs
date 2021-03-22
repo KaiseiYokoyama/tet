@@ -57,6 +57,8 @@
 //! // now you can calculate TET! :+1:
 //! let tet = TextEntryThroughput::new(distribution);
 //!
+//! // Of course, you can use also multibyte characters
+//! // ref. https://doc.rust-lang.org/std/primitive.char.html
 //! let (presented, transcribed) = ("うまぴょい", "うまぽい");
 //! let s = std::time::Duration::from_secs(2); // 4 characters per minute
 //!
