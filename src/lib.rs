@@ -57,7 +57,7 @@
 //! // now you can calculate TET! :+1:
 //! let tet = TextEntryThroughput::new(distribution);
 //!
-//! let (presented, transcribed) = ("quickly", "qucehkly");
+//! let (presented, transcribed) = ("うまぴょい", "うまぽい");
 //! let s = std::time::Duration::from_secs(2); // 4 characters per minute
 //!
 //! // Text Entry Throughput (bits/second)
