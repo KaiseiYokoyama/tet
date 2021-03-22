@@ -9,8 +9,7 @@ pub struct TextEntryThroughput {
 }
 
 impl TextEntryThroughput {
-    pub fn new(frequency: Frequencies) -> Self {
-        let distribution = Distribution::new(frequency);
+    pub fn new(distribution: Distribution) -> Self {
         Self { distribution }
     }
 

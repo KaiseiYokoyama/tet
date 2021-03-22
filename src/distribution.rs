@@ -8,6 +8,12 @@ pub struct Frequencies {
 }
 
 impl Frequencies {
+    pub fn new() -> Self {
+        Frequencies {
+            map: HashMap::new()
+        }
+    }
+
     /// record an appearance of char
     pub fn record(&mut self, c: char) {
         if let Some(record) = self.map.get_mut(&c) {
