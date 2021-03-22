@@ -4,10 +4,12 @@
 //!
 //! This crate is a third-party implementation of TET.
 //!
-//! ## TL;DR (English alphabet only)
+//! ## TL;DR
 //! ```
 //! use tet::TextEntryThroughput;
 //!
+//! // A preset for English alphabet is provided.
+//! // An explanation for other language texts is wrote on later.
 //! let tet = TextEntryThroughput::alphabet_letter_distribution();
 //!
 //! let presented_text = "my watch fell in the waterprevailing wind from the east";
