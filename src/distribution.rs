@@ -14,6 +14,10 @@ impl Frequencies {
         }
     }
 
+    pub fn with_map(map: HashMap<char, u128>) -> Self {
+        Self { map }
+    }
+
     /// record an appearance of char
     pub fn record(&mut self, c: char) {
         if let Some(record) = self.map.get_mut(&c) {
@@ -21,6 +25,14 @@ impl Frequencies {
         } else {
             self.map.insert(c, 1);
         }
+    }
+
+    pub fn n(&self) -> u128 {
+        self.map.values().sum::<u128>()
+    }
+
+    pub fn retain<F: Fn(&char) -> bool>(&mut self, func: F) {
+        self.map.retain(|c, _| func(c))
     }
 }
 
@@ -42,6 +54,10 @@ impl Distribution {
             })
             .collect();
 
+        Self { map }
+    }
+
+    pub fn with_map(map: HashMap<char, f64>) -> Self {
         Self { map }
     }
 

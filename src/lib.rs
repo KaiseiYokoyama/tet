@@ -84,12 +84,6 @@ impl TextEntryThroughput {
         Self { distribution }
     }
 
-    pub fn with_map(map: HashMap<char, f64>) -> Self {
-        Self {
-            distribution: Distribution { map }
-        }
-    }
-
     pub fn alphabet_letter_distribution() -> Self {
         let alphabets = [
             'a', 'b', 'c', 'd', 'e',
@@ -100,6 +94,7 @@ impl TextEntryThroughput {
             'z', ' '
         ];
 
+        // ref. http://www.macfreek.nl/memory/Letter_Distribution#Letter_Frequency
         let distribution = [
             0.06545420428810268, 0.012614349400134882, 0.022382079660795914, 0.032895839710101495, 0.10287480840814522,
             0.019870906945619955, 0.01628201251975626, 0.0498866519336527, 0.05679944220647908, 0.0009771967640664421,
@@ -112,7 +107,9 @@ impl TextEntryThroughput {
             .zip(distribution.iter().cloned())
             .collect::<HashMap<_, _>>();
 
-        Self::with_map(map)
+        let distribution = Distribution::with_map(map);
+
+        Self::new(distribution)
     }
 
     /// compute a text entry throughput (bits/s)
