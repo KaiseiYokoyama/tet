@@ -1,5 +1,5 @@
 [package]
-name = "tet"
+name = "tet_rs"
 version = "0.1.1"
 authors = ["KYokoyama <8509057+KaiseiYokoyama@users.noreply.github.com>"]
 edition = "2018"

@@ -57,5 +57,5 @@ let throughput = tet.calc(presented, transcribed, s).unwrap();
 `serde1` feature allows you to save and load `Frequencies`
 and `Distribution` via JSON.
 ```toml: Cargo.toml
-tet = { version = "0.1", features = ["serde1"] }
+tet_rs = { version = "0.1", features = ["serde1"] }
 ```
