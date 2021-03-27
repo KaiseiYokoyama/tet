@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 /// frequency of characters
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Clone)]
 pub struct Frequencies {
     /// map of frequencies
@@ -37,6 +38,7 @@ impl Frequencies {
 }
 
 /// distribution of characters
+#[cfg_attr(feature = "serde1", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq)]
 pub struct Distribution {
     /// map of distribution

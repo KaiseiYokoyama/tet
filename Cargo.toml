@@ -1,9 +1,17 @@
 [package]
 name = "tet"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["KYokoyama <8509057+KaiseiYokoyama@users.noreply.github.com>"]
 edition = "2018"
+description = "A third-party implementation of Text Entry Throughput (ref. https://doi.org/10.1145/3290605.3300866) for Rust"
+repository = "https://github.com/KaiseiYokoyama/tet"
+license = "MIT"
+keywords = ["hci", "text_entry", "text_entry_benchmark"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+serde = { version = "1.0", features = ["derive"], optional = true }
+
+[features]
+serde1 = ["serde"]

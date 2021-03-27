@@ -52,3 +52,10 @@ let s = std::time::Duration::from_secs(2); // 4 characters per minute
 // Text Entry Throughput (bits/second)
 let throughput = tet.calc(presented, transcribed, s).unwrap();
 ```
+
+## Features
+`serde1` feature allows you to save and load `Frequencies`
+and `Distribution` via JSON.
+```toml: Cargo.toml
+tet = { version = "0.1", features = ["serde1"] }
+```

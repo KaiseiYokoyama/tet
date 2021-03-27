@@ -67,10 +67,21 @@
 //! // Text Entry Throughput (bits/second)
 //! let throughput = tet.calc(presented, transcribed, s).unwrap();
 //! ```
+//!
+//! ## Features
+//! `serde1` feature allows you to save and load [`Frequencies`](Frequencies)
+//! and [`Distribution`](Distribution) via JSON.
+//!
+//! ```toml: Cargo.toml
+//! tet = { version = "0.1", features = ["serde1"] }
+//! ```
 
 
 pub use crate::distribution::{Distribution, Frequencies};
 use std::collections::HashMap;
+
+#[cfg(feature = "serde1")]
+use serde::{Serialize, Deserialize};
 
 mod distribution;
 mod optimal_alignments;
