@@ -1,3 +1,5 @@
+#[cfg(feature = "serde1")]
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 
 /// frequency of characters

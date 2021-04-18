@@ -76,12 +76,8 @@
 //! tet = { version = "0.1", features = ["serde1"] }
 //! ```
 
-
 pub use crate::distribution::{Distribution, Frequencies};
 use std::collections::HashMap;
-
-#[cfg(feature = "serde1")]
-use serde::{Serialize, Deserialize};
 
 mod distribution;
 mod optimal_alignments;
