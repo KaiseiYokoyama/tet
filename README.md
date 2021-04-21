@@ -6,7 +6,7 @@ This crate is a third-party implementation of TET.
 
 ## TL;DR
 ```rust
-use tet::TextEntryThroughput;
+use tet_rs::TextEntryThroughput;
 
 // A preset for English alphabet is provided.
 // An explanation for other language texts is wrote on later.
@@ -24,7 +24,7 @@ assert!((throughput - 12.954965333409255).abs() < 0.0001);
 ### Get distribution
 First, prepare a distribution of characters to get entropy `H(X)` from source.
 ```rust
-use tet::{Frequencies, Distribution};
+use tet_rs::{Frequencies, Distribution};
 
 let mut frequency = Frequencies::new();
 

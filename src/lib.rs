@@ -6,7 +6,7 @@
 //!
 //! ## TL;DR
 //! ```
-//! use tet::TextEntryThroughput;
+//! use tet_rs::TextEntryThroughput;
 //!
 //! // A preset for English alphabet is provided.
 //! // An explanation for other language texts is wrote on later.
@@ -24,7 +24,7 @@
 //! ### Get distribution
 //! First, prepare a distribution of characters to get entropy `H(X)` from source.
 //! ```
-//! use tet::{Frequencies, Distribution};
+//! use tet_rs::{Frequencies, Distribution};
 //!
 //! let mut frequency = Frequencies::new();
 //!
@@ -41,8 +41,7 @@
 //!
 //! ### Compute TET
 //! ```
-//! # use tet::*;
-//! # use tet::{Frequencies, Distribution};
+//! # use tet_rs::*;
 //! #
 //! # let mut frequency = Frequencies::new();
 //! #
