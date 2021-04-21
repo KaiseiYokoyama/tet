@@ -43,6 +43,17 @@ impl Frequencies {
             self.map.insert(c, 0);
         } else {}
     }
+
+    pub fn replace_char<F: Fn(&char) -> Option<char>>(&mut self, f: F) {
+        self.map.iter()
+            .flat_map(|(k, v)| Some((f(k)?, v.clone())))
+            .collect::<Vec<(char, u128)>>()
+            .into_iter()
+            .for_each(|(k, v)| {
+                let _ = self.map.remove(&k);
+                self.map.insert(k, v);
+            });
+    }
 }
 
 /// distribution of characters

@@ -1,6 +1,6 @@
 [package]
 name = "tet_rs"
-version = "0.2.2"
+version = "0.3.1"
 authors = ["KYokoyama <8509057+KaiseiYokoyama@users.noreply.github.com>"]
 edition = "2018"
 description = "A third-party implementation of Text Entry Throughput (ref. https://doi.org/10.1145/3290605.3300866) for Rust"
