@@ -37,6 +37,12 @@ impl Frequencies {
     pub fn retain<F: Fn(&char) -> bool>(&mut self, func: F) {
         self.map.retain(|c, _| func(c))
     }
+
+    pub fn entry_char(&mut self, c: char) {
+        if !self.map.contains_key(&c) {
+            self.map.insert(c, 0);
+        } else {}
+    }
 }
 
 /// distribution of characters
