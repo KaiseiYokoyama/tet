@@ -22,9 +22,7 @@ pub struct OptimalAlignments<'a> {
 }
 
 impl<'a> OptimalAlignments<'a> {
-    pub fn new<P, T>(presented: P, transcribed: T, distribution: &'a Distribution) -> Self
-        where P: Into<&'static str>, T: Into<&'static str>
-    {
+    pub fn new(presented: &str, transcribed: &str, distribution: &'a Distribution) -> Self {
         let (presented, transcribed) = (presented.into(), transcribed.into());
 
         let mut slf = Self {

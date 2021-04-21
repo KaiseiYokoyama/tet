@@ -124,12 +124,9 @@ impl TextEntryThroughput {
     /// - presented: presented text
     /// - transcribed: transcribed text
     /// - s: time in seconds required for entry transcribed text
-    pub fn calc<P, T>(&self, presented: P, transcribed: T, s: std::time::Duration) -> Option<f64>
-        where P: Into<&'static str>, T: Into<&'static str>
-    {
+    pub fn calc(&self, presented: &str, transcribed: &str, s: std::time::Duration) -> Option<f64>    {
         use optimal_alignments::OptimalAlignments;
 
-        let transcribed = transcribed.into();
         let characters_per_second = transcribed.chars().count() as f64 / s.as_secs_f64();
 
         let alignments = OptimalAlignments::new(presented, transcribed, &self.distribution);
